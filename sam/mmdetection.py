@@ -7,10 +7,7 @@ from urllib.parse import urlparse
 import numpy as np
 from label_studio_converter import brush
 
-import psutil
-
 import cv2
-import gc
 
 import boto3
 from botocore.exceptions import ClientError
