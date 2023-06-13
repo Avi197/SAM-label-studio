@@ -1,3 +1,14 @@
+# This is the modified version of open-mmlab/playground
+
+### Compare to original
+Fix RAM issue
+- The original version will not release RAM and keep load SAM model to new instance for every image
+- The backend will be OOM after a few image and killed
+Faster labeling
+- Due to the RAM issue, the labeling process take way too long
+- Improve the load time on image load to < 1s
+- Improve SAM labeling result draw to < 1s
+ 
 
 ### Environment
 ```
