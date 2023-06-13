@@ -12,8 +12,8 @@ Faster labeling
 
 ### Environment
 ```
-conda create -n rtmdet-sam python=3.9 -y
-conda activate rtmdet-sam
+conda create -n sam_labeling python=3.9 -y
+conda activate sam_labeling
 ```
 ### Install torch with appropriate CUDA version
 ```
