@@ -48,10 +48,11 @@ pip install label-studio-ml==1.0.9
 
 ### Start Label studio
 ```
-# Start label studio web
+# Need 2 seperate terminal
+# Start label studio web on terminal 1
 start-label.sh
 
-# Start label studio ml backend
+# Start label studio ml backend on terminal 2
 # set out_mask=False  out_poly=True to get polygons results
 # set out_mask=True  out_poly=False to get masks results
 start-ml.sh
