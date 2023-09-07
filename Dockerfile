@@ -18,21 +18,27 @@ RUN apt-get update && apt-get install -y git
 WORKDIR /tmp
 COPY requirements.txt .
 
-#ENV PYTHONUNBUFFERED=True \
-#    PORT=${PORT:-9090} \
-#    PIP_CACHE_DIR=/.cache
+ENV PYTHONUNBUFFERED=True \
+    PORT=${PORT:-8003} \
+    PIP_CACHE_DIR=/.cache
 
-RUN pip install -r requirements.txt
+RUN --mount=type=cache,target=$PIP_CACHE_DIR \
+    pip install -r requirements.txt
 RUN pip install label_studio_ml
 WORKDIR /app
 
 COPY sam/_wsgi.py .
 COPY sam/mmdetection.py .
-COPY sam_vit_h_4b8939.pth .
+COPY sam/sam_vit_h_4b8939.pth .
 EXPOSE 8003
 
-ENV LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/opt/data/
-ENV LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+#ENV LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/opt/data/
+ENV LABEL_STUDIO_USE_REDIS=true
+#ENV LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/opt/data/
+#ENV LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
 ENV ML_TIMEOUT_SETUP=40
+ENV HOSTNAME=https://labeling-tool-uat.vndirect.com.vn
+ENV API_KEY=b57ae587bb4d1e51ff99a15f52d4d9b835d955b3
 
-RUN LABEL_STUDIO_HOSTNAME=http://10.40.24.254:8080 label-studio-ml start sam --port 8003 --with   sam_config=vit_h   sam_checkpoint_file=./sam_vit_h_4b8939.pth   out_mask=False  out_poly=True   device=cuda:0
+
+CMD exec gunicorn --preload --bind :$PORT --workers 1 --threads 1 --timeout 0 _wsgi:app

@@ -1,10 +1,14 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import hashlib
 import io
 import json
 import logging
 import os
+import shutil
+import urllib
 from urllib.parse import urlparse
 import numpy as np
+import requests
 from label_studio_converter import brush
 
 import cv2
@@ -14,7 +18,7 @@ from botocore.exceptions import ClientError
 from label_studio_ml.model import LabelStudioMLBase
 from label_studio_ml.utils import (DATA_UNDEFINED_NAME, get_image_size,
                                    get_single_tag_keys)
-from label_studio_tools.core.utils.io import get_data_dir
+from label_studio_tools.core.utils.io import get_data_dir, get_cache_dir, LOCAL_FILES_DOCUMENT_ROOT
 # from memory_profiler import profile
 
 # from mmdet.apis import inference_detector, init_detector
@@ -33,6 +37,7 @@ def load_my_model(device="cuda:0", sam_config="vit_h", sam_checkpoint_file="sam_
     sam = sam_model_registry[sam_config](checkpoint=sam_checkpoint_file)
     sam.to(device=device)
     predictor = SamPredictor(sam)
+    print('load model success')
     return predictor
 
 
@@ -49,16 +54,14 @@ class MMDetection(LabelStudioMLBase):
                  sam_checkpoint_file=None,
                  image_dir=None,
                  labels_file=None,
-                 out_mask=True,
+                 out_mask=False,
                  out_bbox=False,
-                 out_poly=False,
+                 out_poly=True,
                  score_threshold=0.5,
                  device='cpu',
                  **kwargs):
 
         super(MMDetection, self).__init__(**kwargs)
-
-        self.PREDICTOR = PREDICTOR
 
         self.out_mask = out_mask
         self.out_bbox = out_bbox
@@ -154,22 +157,24 @@ class MMDetection(LabelStudioMLBase):
     # @profile
     def predict(self, tasks, **kwargs):
 
-        predictor = self.PREDICTOR
+        predictor = PREDICTOR
 
         results = []
         assert len(tasks) == 1
         task = tasks[0]
         image_url = self._get_image_url(task)
-        image_path = self.get_local_path(image_url)
+        image_name = image_url.split('/')[-1]
+        image_path = search_file_in_folder(image_name)
+        # image_path = self.get_local_path('https://labeling-tool-uat.vndirect.com.vn' + image_url)
 
         if kwargs.get('context') is None:
             return []
-        
+
         # image = cv2.imread(f"./{split}")
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         predictor.set_image(image)
-        
+
         prompt_type = kwargs['context']['result'][0]['type']
         original_height = kwargs['context']['result'][0]['original_height']
         original_width = kwargs['context']['result'][0]['original_width']
@@ -299,3 +304,10 @@ def json_load(file, int_keys=False):
             return {int(k): v for k, v in data.items()}
         else:
             return data
+
+
+def search_file_in_folder(filename, folder_path='/opt/github/sam_label_studio/data_upload/train'):
+    for root, dirs, files in os.walk(folder_path):
+        if filename in files:
+            return os.path.join(root, filename)
+    return None

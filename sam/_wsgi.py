@@ -4,6 +4,12 @@ import json
 import logging
 import logging.config
 import os
+from torch.multiprocessing import Pool, Process, set_start_method
+
+try:
+    set_start_method('spawn',  force=True)
+except RuntimeError:
+    pass
 
 logging.config.dictConfig({
     'version': 1,
@@ -51,7 +57,7 @@ if __name__ == '__main__':
         '--port',
         dest='port',
         type=int,
-        default=9090,
+        default=8080,
         help='Server port')
     parser.add_argument(
         '--host', dest='host', type=str, default='0.0.0.0', help='Server host')
@@ -138,10 +144,15 @@ if __name__ == '__main__':
     app.run(host=args.host, port=args.port, debug=args.debug)
 
 else:
+    # print("Starting app")
+    # if os.getenv('FOO'):
+    #     print(f"FOO {os.getenv('FOO')}")
+
     # for uWSGI use
     app = init_app(
         model_class=MMDetection,
         model_dir=os.environ.get('MODEL_DIR', os.path.dirname(__file__)),
         redis_queue=os.environ.get('RQ_QUEUE_NAME', 'default'),
         redis_host=os.environ.get('REDIS_HOST', 'localhost'),
-        redis_port=os.environ.get('REDIS_PORT', 6379))
+        redis_port=os.environ.get('REDIS_PORT', 6379)
+    )

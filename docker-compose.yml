@@ -15,12 +15,15 @@ services:
     build: .
 
     environment:
+      - LABEL_STUDIO_USE_REDIS=true
+      - HOSTNAME=https://labeling-tool-uat.vndirect.com.vn/
+      - API_KEY=b57ae587bb4d1e51ff99a15f52d4d9b835d955b3
       - MODEL_DIR=/data/models
       - RQ_QUEUE_NAME=default
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     ports:
-      - 9090:9090
+      - 8003:8003
     depends_on:
       - redis
     links:
