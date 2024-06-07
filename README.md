@@ -1,6 +1,6 @@
 # This is the modified version of open-mmlab/playground
 
-### Compare to original
+### Improvemnt from the original
 Fix RAM issue
 - The original version will not release RAM and keep load SAM model to new instance for every image
 - The backend will be OOM after a few image and killed
